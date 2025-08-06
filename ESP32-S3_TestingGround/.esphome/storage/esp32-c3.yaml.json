@@ -1,0 +1,43 @@
+{
+  "storage_version": 1,
+  "name": "esp32-c3",
+  "friendly_name": "esp32-c3",
+  "comment": null,
+  "esphome_version": "2025.6.0",
+  "src_version": 1,
+  "address": "esp32-c3.local",
+  "web_port": null,
+  "esp_platform": "ESP32C3",
+  "build_path": "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/esp32-c3",
+  "firmware_bin_path": "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/esp32-c3/.pioenvs/esp32-c3/firmware.bin",
+  "loaded_integrations": [
+    "api",
+    "async_tcp",
+    "captive_portal",
+    "esp32",
+    "esphome",
+    "homeassistant",
+    "light",
+    "logger",
+    "md5",
+    "mdns",
+    "neopixelbus",
+    "network",
+    "ota",
+    "preferences",
+    "safe_mode",
+    "socket",
+    "sun",
+    "time",
+    "web_server_base",
+    "wifi"
+  ],
+  "loaded_platforms": [
+    "light/neopixelbus",
+    "ota/esphome",
+    "time/homeassistant"
+  ],
+  "no_mdns": false,
+  "framework": "arduino",
+  "core_platform": "esp32"
+}

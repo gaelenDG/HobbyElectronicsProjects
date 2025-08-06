@@ -1,0 +1,74 @@
+# esphome:
+#   name: esp32-s3
+
+# esp32:
+#   board: esp32-s3-devkitc-1
+#   framework:
+#     type: arduino
+
+# logger:
+
+# api:
+#   password: "papanoel10"
+
+# ota:
+#   - platform: esphome
+#     password: "papanoel10"
+
+# wifi:
+  
+#   ssid: "WendellsWorld"
+#   password: "partytime"
+
+#   ap:
+#     ssid: "Esp32-S3 Fallback Hotspot"
+#     password: "I8kwRQsVDp7u"
+
+# captive_portal:
+
+# i2c:
+#   sda: GPIO1
+#   scl: GPIO2
+#   scan: true
+#   id: bus_a
+
+# sensor:
+#   - platform: aht10  # AHT20 uses the same driver
+#     temperature:
+#       name: "AHT20 Temperature"
+#     humidity:
+#       name: "AHT20 Humidity"
+#     update_interval: 60s
+
+#   - platform: bmp280_i2c
+#     temperature:
+#       name: "BMP280 Temperature"
+#     pressure:
+#       name: "BMP280 Pressure"
+#     address: 0x76  # or 0x77 depending on the module
+#     update_interval: 60s
+
+i2c:
+  sda: GPIO8
+  scl: GPIO9
+  scan: true
+
+logger:
+
+ota:
+  platform: esphome
+  password: "papanoel10"
+
+esphome:
+  name: test-i2c
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+wifi:
+  ssid: "WendellsWorld"
+  password: "partytime"
+
+captive_portal:

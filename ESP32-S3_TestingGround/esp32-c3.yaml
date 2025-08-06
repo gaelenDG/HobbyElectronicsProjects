@@ -1,0 +1,168 @@
+esphome:
+  name: esp32-c3
+  friendly_name: esp32-c3
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "GB3Wpi0KuWDjoW8UCjc2pMujljfTgDdR86TkAFbrVlc="
+
+ota:
+  - platform: esphome
+    password: "0614ccd5c6b85ff2eefaba06b0456e68"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password 
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Esp32-C3 Fallback Hotspot"
+    password: "Z8dTshYv61zn"
+
+
+captive_portal:
+    
+light:
+  - platform: neopixelbus
+    type: GRBW
+    variant: sk6812
+    pin: GPIO2
+    num_leds: 10
+    name: "ESP32-C3 RGB LED"
+    id: weather_strip
+
+    effects:
+      - addressable_lambda:
+          name: "Sunrise"
+          update_interval: 1s
+          lambda: |-
+            static bool initial = true;
+            static float elapsed = 0;
+            if (initial) {
+              elapsed = 0;
+              initial = false;
+            } else {
+              elapsed += 1.0;  // 1 second per update
+            }
+
+            const float duration = 60.0;  // 30 min total
+            float pos = elapsed / duration;
+            if (pos > 1.0) pos = 1.0;
+
+            uint8_t r, g, b, w;
+
+            if (pos < 0.3) {
+              // Stage 1: black → pink
+              float t = pos / 0.3;
+              r = uint8_t(255 * t);
+              g = uint8_t(100 * t);
+              b = uint8_t(80 * t);
+              w = 0;
+            } else if (pos < 0.7) {
+              // Stage 2: pink → orange
+              float t = (pos - 0.3) / 0.4;
+              r = 255;
+              g = uint8_t(100 + (t * 100));  // to 200
+              b = uint8_t(t * 128);
+              w = 0;
+            } else {
+              // Stage 3: orange → warm white
+              float t = (pos - 0.7) / 0.3;
+              r = 255;
+              g = uint8_t(100 * (1 - t) + 200 * t);
+              b = uint8_t(50 * (1 - t));
+              w = uint8_t(180 * t);
+            }
+
+            it.all() = Color(r, g, b);
+
+
+      - addressable_lambda:
+            name: "Sunset"
+            update_interval: 1s
+            lambda: |-
+              static bool initial = true;
+              static float elapsed = 0;
+              if (initial) {
+                elapsed = 0;
+                initial = false;
+              } else {
+                elapsed += 1.0;  // 1 second per update
+              }
+
+              const float duration = 60.0;  // 30 min total
+              float pos = elapsed / duration;
+              if (pos > 1.0) pos = 1.0;
+              pos = 1.0 - pos;
+
+              // RGB values
+              uint8_t r=0, g=0, b=0, w=0; 
+              if (pos > 0.7) {
+                // Stage 1: Warm white → soft orange
+                float t = (pos - 0.7) / 0.3;
+                r = 255;
+                g = uint8_t(200 * t + 100 * (1 - t));  // down from yellow to orange
+                b = uint8_t(50 * t);                   // small blue for warmth
+                w = uint8_t(180 * t);
+              } else if (pos > 0.3) {
+                // Stage 2: Orange → light pink
+                float t = (pos - 0.3) / 0.4;
+                r = 255;
+                g = uint8_t(100 + (t * 100));         // 100 → 200
+                b = uint8_t(t * 128);
+                w = 0;
+              } else {
+                // Stage 3: Pink → off
+                float t = pos / 0.3;
+                r = uint8_t(255 * t);
+                g = uint8_t(200 * t);
+                b = uint8_t(128 * t);
+                w = 0;
+              }
+
+
+              it.all() = Color(r, g, b);
+
+
+
+      - random:
+          name: "Weather"
+          transition_length: 5s
+          update_interval: 1min
+
+time:
+  - platform: homeassistant
+    id: ha_time
+    on_time:
+      - seconds: 0
+        minutes: 0
+        hours: 8
+        then:
+          - light.turn_on:
+              id: weather_strip
+              effect: Weather
+
+sun:
+  latitude: !secret latitude
+  longitude: !secret longitude
+
+  on_sunrise:
+    - then:
+        - light.turn_on:
+            id: weather_strip
+            effect: Sunrise
+
+  on_sunset:
+    - then:
+        - light.turn_on:
+            id: weather_strip
+            effect: Sunset

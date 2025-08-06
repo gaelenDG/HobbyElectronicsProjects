@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "241222-063907-esp32-c3-devkitm-1",
+			"path": "../../241222-063907-esp32-c3-devkitm-1"
+		},
+		{
+			"name": "241222-083211-espidf-hello-world",
+			"path": "../../241222-083211-espidf-hello-world"
+		},
+		{
+			"name": "Neopixel Book",
+			"path": ".."
+		}
+	],
+	"settings": {}
+}

@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/test-i2c/.pioenvs/test-i2c/CMakeFiles/bootloader"
+		},
+		{
+			"file" : "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/test-i2c/.pioenvs/test-i2c/CMakeFiles/bootloader.rule"
+		},
+		{
+			"file" : "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/test-i2c/.pioenvs/test-i2c/CMakeFiles/bootloader-complete.rule"
+		},
+		{
+			"file" : "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/test-i2c/.pioenvs/test-i2c/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule"
+		},
+		{
+			"file" : "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/test-i2c/.pioenvs/test-i2c/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule"
+		},
+		{
+			"file" : "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/test-i2c/.pioenvs/test-i2c/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule"
+		},
+		{
+			"file" : "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/test-i2c/.pioenvs/test-i2c/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule"
+		},
+		{
+			"file" : "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/test-i2c/.pioenvs/test-i2c/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule"
+		},
+		{
+			"file" : "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/test-i2c/.pioenvs/test-i2c/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule"
+		},
+		{
+			"file" : "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/test-i2c/.pioenvs/test-i2c/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"bootloader"
+		],
+		"name" : "bootloader"
+	}
+}

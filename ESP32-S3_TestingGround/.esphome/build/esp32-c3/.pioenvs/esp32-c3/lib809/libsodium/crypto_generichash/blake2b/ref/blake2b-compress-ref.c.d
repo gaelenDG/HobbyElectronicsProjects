@@ -1,0 +1,7 @@
+.pioenvs/esp32-c3/lib809/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-ref.c.o: \
+ .piolibdeps/esp32-c3/libsodium/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-ref.c \
+ .piolibdeps/esp32-c3/libsodium/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2.h \
+ .piolibdeps/esp32-c3/libsodium/libsodium/src/libsodium/include/sodium/crypto_generichash_blake2b.h \
+ .piolibdeps/esp32-c3/libsodium/libsodium/src/libsodium/include/sodium/export.h \
+ .piolibdeps/esp32-c3/libsodium/libsodium/src/libsodium/include/sodium/export.h \
+ .piolibdeps/esp32-c3/libsodium/libsodium/src/libsodium/include/sodium/private/common.h

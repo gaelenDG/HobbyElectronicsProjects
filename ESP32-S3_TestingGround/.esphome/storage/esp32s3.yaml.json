@@ -1,0 +1,36 @@
+{
+  "storage_version": 1,
+  "name": "test-i2c",
+  "friendly_name": null,
+  "comment": null,
+  "esphome_version": "2025.6.0",
+  "src_version": 1,
+  "address": "test-i2c.local",
+  "web_port": null,
+  "esp_platform": "ESP32S3",
+  "build_path": "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/test-i2c",
+  "firmware_bin_path": "/Users/gaelenguzman/Documents/PlatformIO/Projects/ESP32-S3_TestingGround/.esphome/build/test-i2c/.pioenvs/test-i2c/firmware.bin",
+  "loaded_integrations": [
+    "captive_portal",
+    "esp32",
+    "esphome",
+    "i2c",
+    "logger",
+    "md5",
+    "mdns",
+    "network",
+    "ota",
+    "preferences",
+    "safe_mode",
+    "socket",
+    "web_server_base",
+    "web_server_idf",
+    "wifi"
+  ],
+  "loaded_platforms": [
+    "ota/esphome"
+  ],
+  "no_mdns": false,
+  "framework": "esp-idf",
+  "core_platform": "esp32"
+}

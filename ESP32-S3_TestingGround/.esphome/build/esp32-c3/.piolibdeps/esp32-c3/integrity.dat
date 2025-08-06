@@ -1,0 +1,9 @@
+esphome/noise-c@0.1.6
+esphome/ESPAsyncWebServer-esphome@3.3.0
+makuna/NeoPixelBus@2.7.3
+ESPmDNS
+DNSServer
+FS
+Update
+WiFi
+esphome/AsyncTCP-esphome@2.1.4
