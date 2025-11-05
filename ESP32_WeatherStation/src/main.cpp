@@ -123,9 +123,9 @@ void loop () {
 
   delay(500);
 
-  // delay(10000);
+  delay(10000);
 
-  Serial.println("Going to sleep");
+  // Serial.println("Going to sleep");
   
-  esp_light_sleep_start(); // Enter light sleep
+  // esp_light_sleep_start(); // Enter light sleep
 }
