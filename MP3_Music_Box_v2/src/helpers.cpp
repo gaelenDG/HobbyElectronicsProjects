@@ -1,7 +1,10 @@
 // ======== Library initialization ========
 #include <Arduino.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_PN532.h>
+#include <DFRobotDFPlayerMini.h>
 #include <Wire.h>
 #include <SPI.h>
 #include "helpers.h"
@@ -9,7 +12,8 @@
 #include "esp_sleep.h"
 #include "peripherals.h"
 #include "config.h"
-#include <DFRobotDFPlayerMini.h>
+#include "secrets.h"
+
 using namespace std;
 
 
@@ -317,7 +321,6 @@ void checkPeripherals() {
   nfcPreviouslyOK = nfcOK;
 }
 
-
 // ---- Observe button presses (currently only 2 buttons) ----
 ButtonAction checkButton(uint8_t pin) {
   static unsigned long pressStart[2] = {0, 0};
@@ -394,4 +397,104 @@ void handleButtonAction() {
     player.volume(volume);
     Serial.printf("Volume down: %d\n", volume);
   }
+}
+
+
+void connectToWiFi() {
+  logMsg = "Connecting to Wi-Fi";
+  Serial.print(logMsg);
+
+
+  WiFi.begin(ssid, password);
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 10) {
+    delay(250);
+    Serial.print(".");
+    attempts++;
+  }
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nWi-Fi connected");
+  } else {
+    Serial.println("\nWi-Fi connection failed after 10 attempts.");
+  }
+}
+
+void connectToMQTT() {
+  mqttClient.setServer(mqttServer, mqttPort);
+  logMsg = "Connecting to MQTT broker...";
+  Serial.print(logMsg);
+
+  int attempts = 0;
+  while (!mqttClient.connected() && attempts < 10) {
+    if (mqttClient.connect("Wendell's Music Box", mqttUser, mqttPassword)) {
+      // Subscribe to MQTT command topics
+      mqttClient.subscribe("MusicBox/command/#");
+
+      
+      Serial.println("connected"); // Report MQTT connection status
+      break;
+    } else {
+      Serial.print(".");
+      delay(250);
+      attempts++;
+    }
+  }
+  if (!mqttClient.connected()) {
+    Serial.println("\nMQTT connection failed after 10 attempts.");
+  }
+}
+
+
+void handleMqttMessage(char* topic, uint8_t* payload, unsigned int length) {
+  String t = String(topic);
+  String msg;
+  for (unsigned int i = 0; i < length; i++) msg += (char)payload[i];
+  msg.trim();
+
+  Serial.printf("MQTT message on [%s]: %s\n", t.c_str(), msg.c_str());
+
+  if (t.endsWith("/play")) {
+    player.start(); // resume or play track
+    mqttClient.publish("esp32/MusicBox/state/status", "playing", true);
+
+  } else if (t.endsWith("/pause")) {
+    player.pause();
+    mqttClient.publish("esp32/MusicBox/state/status", "paused", true);
+  } else if (t.endsWith("/stop")) {
+    player.stop();
+    mqttClient.publish("esp32/MusicBox/state/status", "stopped", true);
+  } else if (t.endsWith("/next")) {
+    player.next();
+    mqttClient.publish("esp32/MusicBox/state/track", String(player.readCurrentFileNumber()).c_str(), true);
+
+  } else if (t.endsWith("/previous")) {
+    player.previous();
+    mqttClient.publish("esp32/MusicBox/state/track", String(player.readCurrentFileNumber()).c_str(), true);
+
+  } else if (t.endsWith("/volume_up")) {
+    int vol = player.readVolume();
+    vol = min(vol + 2, 30);
+    player.volume(vol);
+    mqttClient.publish("esp32/MusicBox/state/volume", String(vol).c_str(), true);
+
+  } else if (t.endsWith("/volume_down")) {
+    int vol = player.readVolume();
+    vol = max(vol - 2, 0);
+    player.volume(vol);
+    mqttClient.publish("esp32/MusicBox/state/volume", String(vol).c_str(), true);
+  }
+}
+
+void publishStatus() {
+  static unsigned long lastStatus = 0;
+  if (millis() - lastStatus < 5000) return;
+  lastStatus = millis();
+
+  mqttClient.publish("esp32/MusicBox/state/connected", "online", true);
+  mqttClient.publish("esp32/MusicBox/state/status",
+                     (player.readState() == 0x01 ? "playing" : "paused"), true);
+  mqttClient.publish("esp32/MusicBox/state/volume",
+                     String(player.readVolume()).c_str(), true);
+  mqttClient.publish("esp32/MusicBox/state/track",
+                     String(player.readCurrentFileNumber()).c_str(), true);
 }

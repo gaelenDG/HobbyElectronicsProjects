@@ -25,7 +25,6 @@ extern uint8_t VoltageReader_Pin; // GPIO pin for battery voltage reader
 extern uint8_t StatusLight_R_Pin;
 extern uint8_t StatusLight_G_Pin;
 extern uint8_t StatusLight_B_Pin;
-extern uint8_t Switch_pin; // Deep sleep switch
 
 // ======== Global variables ========
 extern unsigned long lastTagSeen;
@@ -63,5 +62,13 @@ extern bool nfcOK;
 extern unsigned long lastPeripheralCheck;
 extern const unsigned long CHECK_INTERVAL;
 
+// ======== WiFi & MQTT Topics ========
+
+extern WiFiClient espClient;
+extern PubSubClient mqttClient;
+
+extern String logMsg;
+extern const char* MQTT_Playback ;
+extern const char* MQTT_Volume;
 
 #endif // CONFIG_H

@@ -2,6 +2,8 @@
 #include <Arduino.h>
 #include <DFRobotDFPlayerMini.h>
 #include <Adafruit_NeoPixel.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
 #include "esp32-hal-gpio.h"
 #include "peripherals.h"
 #include "config.h"
@@ -23,20 +25,16 @@ void setup() {
   // Show booting up with dim yellow
   setStatusLight(10, 5, 0);
   
+  // Connect to WiFi & MQTT
+  logMsg = "Connecting to WiFi...";
+  connectToWiFi();
+
+  logMsg = "Connecting to MQTT";
+  connectToMQTT();
 
   // Initialize buttons
   pinMode(Button1_pin, INPUT);
   pinMode(Button2_pin, INPUT);
-
-  // initialize power switch
-  pinMode(Switch_pin, INPUT_PULLUP);
-
-  // If switch is OFF at startup, immediately sleep
-  if (digitalRead(Switch_pin) == HIGH) {  // <-- now HIGH means OFF
-    Serial.println("🔌 Switch is OFF — entering deep sleep.");
-    esp_sleep_enable_ext1_wakeup(1ULL << Switch_pin, ESP_EXT1_WAKEUP_ANY_LOW);
-    esp_deep_sleep_start();
-  }
 
   // Do a check of battery status on bootup
   checkBatteryAndSleepIfLow();
@@ -107,21 +105,6 @@ void setup() {
 
 void loop() {
 
-  pinMode(Switch_pin, INPUT_PULLUP);
-  bool switchOn = (digitalRead(Switch_pin) == LOW);
-
-  // Check if the deep sleep switch is on - if on continue as normal, else enter deep sleep
-  if (!switchOn) {
-    Serial.println("Switch OFF → entering deep sleep");
-
-    // Stop DFPlayer
-    player.stop();
-    delay(100);
-
-    esp_sleep_enable_ext1_wakeup(1ULL << Switch_pin, ESP_EXT1_WAKEUP_ANY_LOW);
-
-    esp_deep_sleep_start();
-  }
 
   // Check battery levels, put to sleep if not charged sufficiently
   checkBatteryAndSleepIfLow();
@@ -186,9 +169,6 @@ void loop() {
         String payload = readNdefTextFromTag();
         if (payload.length() == 0) {
           Serial.println("No NDEF text found (or read failed). Ensure tag is NDEF formatted and contains a Text record.");
-          // Change status light to show removed 
-          setStatusLight(10, 0, 0); 
-
         } else {
           Serial.print("NDEF text payload: '");
           Serial.print(payload);
