@@ -122,13 +122,17 @@ String readNdefTextFromTag() {
       uint8_t status = payload[0];
       uint8_t langLen = status & 0x3F;
       int textIndex = 1 + langLen;
-      if ((int)payloadLen <= textIndex) return String("");
-      // Copy text part to String
-      String txt = "";
-      for (uint32_t i = textIndex; i < payloadLen; ++i) {
-        txt += (char)payload[i];
+      if ((int)payloadLen <= textIndex) {
+        return String("");
       }
-      return txt;
+      
+      // Extract text
+      int textLen = payloadLen - textIndex;
+      char textBuf[256] = {0};
+      if (textLen >= (int)sizeof(textBuf)) textLen = sizeof(textBuf) - 1;
+      memcpy(textBuf, payload + textIndex, textLen);
+      
+      return String(textBuf);
     } else {
       // Not a text record: for debugging, return raw bytes as hex or attempt to print
       String s = "";
@@ -149,6 +153,77 @@ String readNdefTextFromTag() {
   // No NDEF TLV found
   return String("");
 }
+
+
+TagCommand parseTagPayload(const String& payload) {
+  TagCommand cmd = {0, 1, -1, false, false};  // default track to 1
+  
+  Serial.printf("Parsing payload (len=%d): '%s'\n", payload.length(), payload.c_str());
+  
+  if (payload.length() == 0) {
+    return cmd;
+  }
+
+  // Find the pipe delimiter to split folder from options
+  int pipeIndex = payload.indexOf('|');
+  String folderStr;
+  String optionsStr;
+
+  if (pipeIndex > 0) {
+    folderStr = payload.substring(0, pipeIndex);
+    optionsStr = payload.substring(pipeIndex + 1);
+  } else {
+    folderStr = payload;
+    optionsStr = "";
+  }
+
+  // Parse folder (e.g., "07")
+  folderStr.trim();
+  cmd.folder = folderStr.toInt();
+
+  if (cmd.folder == 0) {
+    // Invalid folder (0 is not valid in DFPlayer)
+    Serial.printf("Invalid folder: %d\n", cmd.folder);
+    return cmd;
+  }
+
+  Serial.printf("Parsed folder: %u, track: %u\n", cmd.folder, cmd.track);
+
+  // Parse options (e.g., "volume 5 | shuffle")
+  optionsStr.toLowerCase(); // case-insensitive
+  
+  // Look for "volume" keyword
+  int volIndex = optionsStr.indexOf("volume");
+  if (volIndex >= 0) {
+    // Extract the number after "volume"
+    int numStart = volIndex + 6; // length of "volume"
+    while (numStart < optionsStr.length() && !isdigit(optionsStr[numStart])) {
+      numStart++;
+    }
+    if (numStart < optionsStr.length()) {
+      int numEnd = numStart;
+      while (numEnd < optionsStr.length() && isdigit(optionsStr[numEnd])) {
+        numEnd++;
+      }
+      String volStr = optionsStr.substring(numStart, numEnd);
+      int vol = volStr.toInt();
+      if (vol >= 0 && vol <= 30) {
+        cmd.volume = vol;
+        Serial.printf("Parsed volume: %d\n", cmd.volume);
+      }
+    }
+  }
+
+  // Check for "shuffle" keyword
+  if (optionsStr.indexOf("shuffle") >= 0) {
+    cmd.shuffle = true;
+    Serial.println("Shuffle enabled");
+  }
+
+  cmd.valid = true;
+  return cmd;
+}
+
 
 float readBatVoltage() {
   uint32_t Vbatt = 0;

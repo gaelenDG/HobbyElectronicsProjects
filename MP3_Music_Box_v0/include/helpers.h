@@ -7,6 +7,7 @@
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_PN532.h>
+#include "tag_parser.h"
 
 // ======== Function prototypes ======== //
 
@@ -15,6 +16,7 @@
 int readRFID();
 int readVolumeKnob();
 String readNdefTextFromTag();
+TagCommand parseTagPayload(const String& payload);
 bool readTagPage(uint8_t page, uint8_t *buf);
 float readBatVoltage();
 void checkBatteryAndSleepIfLow();

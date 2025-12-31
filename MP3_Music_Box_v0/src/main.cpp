@@ -6,6 +6,7 @@
 #include "peripherals.h"
 #include "config.h"
 #include "helpers.h"
+#include "tag_parser.h"
 
 // using namespace std;
 
@@ -110,18 +111,6 @@ void loop() {
   pinMode(Switch_pin, INPUT_PULLUP);
   bool switchOn = (digitalRead(Switch_pin) == LOW);
 
-  // Check if the deep sleep switch is on - if on continue as normal, else enter deep sleep
-  if (!switchOn) {
-    Serial.println("Switch OFF → entering deep sleep");
-
-    // Stop DFPlayer
-    player.stop();
-    delay(100);
-
-    esp_sleep_enable_ext1_wakeup(1ULL << Switch_pin, ESP_EXT1_WAKEUP_ANY_LOW);
-
-    esp_deep_sleep_start();
-  }
 
   // Check battery levels, put to sleep if not charged sufficiently
   checkBatteryAndSleepIfLow();
@@ -194,24 +183,36 @@ void loop() {
           Serial.print(payload);
           Serial.println("'");
 
-          // Example mapping: payload contains "01/001" or "001" etc
-          // You can adapt the mapping rule to your scheme.
-          // If you use numeric ID "001" -> play /001.mp3
-          // If you use folder format "01/001" -> use player.playFolder(1, 1)
-          // Example below assumes payload like "001" or "01/001"
-          if (payload.indexOf('/') >= 0) {
-            int slash = payload.indexOf('/');
-            int folder = payload.substring(0, slash).toInt();
-            int file   = payload.substring(slash + 1).toInt();
-            Serial.printf("Map to folder=%d, file=%d\n", folder, file);
-            player.loopFolder(folder); // Send to DFPlayer
+          // Parse the tag payload for folder, track, volume, shuffle
+          TagCommand cmd = parseTagPayload(payload);
+
+          if (cmd.valid) {
+            Serial.printf("Parsed tag: folder=%u, track=%u, volume=%d, shuffle=%s\n",
+                          cmd.folder, cmd.track, cmd.volume, cmd.shuffle ? "yes" : "no");
+
+            // Set volume if specified
+            if (cmd.volume >= 0) {
+              volume_boost = cmd.volume;
+              Serial.printf("Changing volume by %d to a total of %d\n", cmd.volume, min(volume + cmd.volume, 30));
+              player.volume(min(volume + cmd.volume, 30));
+              volume = volume + cmd.volume;
+            }
+
+            // Enable shuffle if specified
+            if (cmd.shuffle) {
+              Serial.println("Shuffle enabled");
+              player.randomAll();
+            }
+
+            // Play the track
+            Serial.printf("Playing folder %u.\n", cmd.folder);
+            player.loopFolder(cmd.folder);
+            hasPlayedForCurrentTag = true;
           } else {
-            int file = payload.toInt();
-            Serial.printf("Map to file=%d\n", file);
-            player.play(file); // Send to DFPlayer
+            Serial.println("Failed to parse tag payload.");
+            setStatusLight(10, 0, 0);
           }
         }
-        hasPlayedForCurrentTag = true; // allow playback
       }
 
     } else {
@@ -225,9 +226,9 @@ void loop() {
         // Change status light to show removed 
         setStatusLight(0, 5, 0); 
 
-        // Play removed chime then stop playback
+        // Play removed chime at fixed volume (always 10)
         player.volume(10);
-        player.playFolder(01,002);
+        player.playFolder(01, 002);
         
         // Instead of hard/blocking delay, soft yield
         unsigned long chimeStart = millis();
@@ -235,10 +236,11 @@ void loop() {
           yield(); // feed OS/wdt so we won't panic
         }
 
+        // Restore the volume setting (from tag or default)
+        volume = volume - volume_boost; // remove volume boost
         player.volume(volume);
         player.stop();
 
-        // checkPeripherals();
 
         // Clear UID state
         currentUIDLength = 0;

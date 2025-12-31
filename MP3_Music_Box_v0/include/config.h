@@ -33,7 +33,9 @@ extern bool hasPlayedForCurrentTag;
 extern bool tagPresent;
 extern uint8_t currentUID[7];
 extern uint8_t currentUIDLength;
+extern const int DEFAULT_VOLUME;
 extern int volume;
+extern int volume_boost; 
 extern int MAX_VOLUME;
 extern int MIN_VOLUME;
 extern const unsigned long TAG_TIMEOUT; // ms: consider 700-1500 depending on your UX

@@ -53,9 +53,11 @@ float NO_BAT_THRESHOLD = 2.0;
 
 uint64_t LONG_PRESS_TIME = 1000;
 uint64_t REPEAT_INTERVAL = 750;
-uint64_t DEBOUNCE_TIME = 200;
+uint64_t DEBOUNCE_TIME = 100;
 
-int volume = 15;
+const int DEFAULT_VOLUME = 15;  // Default playback volume
+int volume = DEFAULT_VOLUME;
+int volume_boost = 0;  // a holder for the previous volume setting if using a tag with a specified additive level
 int MAX_VOLUME = 30;
 int MIN_VOLUME = 0;
 
@@ -80,5 +82,5 @@ uint8_t currentUID[7] = {0};
 uint8_t currentUIDLength = 0;
 
 const unsigned long TAG_TIMEOUT = 1500UL; // ms to wait for lost tag
-const unsigned long POST_READ_COOLDOWN = 600UL; // ms to wait after a successful read
+const unsigned long POST_READ_COOLDOWN = 750UL; // ms to wait after a successful read
 
