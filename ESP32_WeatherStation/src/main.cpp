@@ -128,4 +128,3 @@ void loop () {
   // Serial.println("Going to sleep");
   
   // esp_light_sleep_start(); // Enter light sleep
-}
