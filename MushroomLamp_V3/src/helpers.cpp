@@ -102,6 +102,7 @@ void connectToMQTT() {
       mqttClient.subscribe(MQTT_TOPIC_Pressure);
       mqttClient.subscribe(MQTT_TOPIC_Humidity);
       mqttClient.subscribe(MQTT_TOPIC_Pattern);
+      mqttClient.subscribe(MQTT_TOPIC_BRIGHTNESS);
       Serial.println("connected"); // Report MQTT connection status
       mqttLog("MQTT connected");
       break;
@@ -126,11 +127,35 @@ void onMQTTMessage(char* topic, uint8_t* payload, unsigned int length) {
   memcpy(msg, payload, length);
   msg[length] = '\0';  // null terminate
 
-  int newPattern = atoi(msg);
+  Serial.print("Topic: ");
+  Serial.println(topic);
 
-  if (newPattern >= 0 && newPattern <= 4) {
-    patternIndex = newPattern;
-    Serial.printf("Switched to pattern %d\n", patternIndex);
+  Serial.print("Payload: ");
+  Serial.println(msg);
+
+  // ===== Pattern control =====
+  if (strcmp(topic, MQTT_TOPIC_PATTERN) == 0) {
+    int newPattern = atoi(msg);
+
+    if (newPattern >= 0 && newPattern <= 4) {
+      patternIndex = newPattern;
+      Serial.printf("Switched to pattern %d\n", patternIndex);
+    }
+  }
+
+  // ===== Brightness control =====
+  else if (strcmp(topic, MQTT_TOPIC_BRIGHTNESS) == 0) {
+    int newBrightness = atoi(msg);
+
+    if (newBrightness >= 0 && newBrightness <= 100) {
+      if (strlen(msg) > 0 && isdigit(msg[0])) {
+        newBrightness = constrain(newBrightness, 0, 100); // Clamp to valid range
+        maxBrightness = newBrightness;
+
+        mqttClient.publish("lamp/brightness/state", String(maxBrightness).c_str()); // Publish new state to HA
+
+        Serial.printf("Brightness set to %d%%\n", maxBrightness);
+      }
   }
 }
 
@@ -187,8 +212,8 @@ void lightPixel(int position, int Red, int Green, int Blue, int White) {
 
   color = chain->Color(Red, Green, Blue, White); // RGB pixel color assignment
 
-  chain->setPixelColor(position, color);
-  // chain->setBrightness(LEDbrightness);
+  chain->setPixelColor(position, color);                    // Set the color of the designated pixel
+  chain->setBrightness(map(maxBrightness, 0, 100, 0, 255)); // Scale brightness appropriately
 
   chain->show();
   

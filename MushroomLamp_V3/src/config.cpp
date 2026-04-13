@@ -41,16 +41,18 @@ const char* MQTT_TOPIC_Pressure = "esp32/WeatherStation/Pressure";
 const char* MQTT_TOPIC_Humidity = "esp32/WeatherStation/Humidity";
 const char* MQTT_TOPIC_Battery = "esp32/WeatherStation/Battery";
 const char* MQTT_TOPIC_Pattern = "lamp/pattern/set";
+const char* MQTT_TOPIC_BRIGHTNESS = "lamp/brightness/set"
 
 String logMsg;
 
 unsigned long lastWiFicheck = 10000UL;
 unsigned long lastMQTTcheck = 10000UL;
 
-// ======== Status light & Sensor definitions ========
+// ======== NeoPixel & Sensor definitions ========
 
 uint8_t numPixels = 8;  // Total pixels
 int patternIndex = 0;
+int maxBrightness = 100;
 
 Adafruit_NeoPixel NeoPixelChain(numPixels, NeoPixelChain_gpio, NEO_GRBW + NEO_KHZ800);
 // Adafruit_NeoPixel NeoPixel_Chain(64, 2, NEO_GRB + NEO_KHZ800);

@@ -12,6 +12,7 @@
 extern Adafruit_NeoPixel NeoPixelChain;
 
 extern uint8_t numPixels;  // Total pixels
+extern int maxBrightness; // Maximum brightness of patterns
 
 extern int patternIndex; // Starting pattern = "0"
 
