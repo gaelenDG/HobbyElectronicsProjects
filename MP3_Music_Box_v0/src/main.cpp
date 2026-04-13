@@ -67,7 +67,6 @@ void setup() {
   Serial.println("DFRobot player connected!");
 
   
-  
 
   // ----------- Initialize NFC reader ------------------
   nfc.begin();

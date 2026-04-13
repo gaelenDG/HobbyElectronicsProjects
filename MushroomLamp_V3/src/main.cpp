@@ -10,13 +10,20 @@ void setup() {
   delay(500);
   Serial.println("Booting...");
 
-  
-  // Initialize status light
+  // // Establish external wifi antenna connection
+  // digitalWrite(3, LOW);//turn on this function
+  // delay(100);
+  // pinMode(14, OUTPUT);  
+  // digitalWrite(14, HIGH);//use external antenna
+
+  // Battery check - sleep if too low
+  checkBatteryAndSleepIfLow();
+
+  // Initialize NeoPixels light
   NeoPixelChain.begin();
 
   lightPixel(0, 10, 0, 0, 0); // Dim red light to show power on
   
-
   // NeoPixelChain.setPixelColor(0, NeoPixelChain.Color(10, 0, 0, 0)); // Dim red light to show power on
   // NeoPixelChain.show();
 
@@ -31,7 +38,6 @@ void setup() {
 
   // Start I2C
   Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
-
 
   // Start AHT temp sensor
   if (! aht.begin()) {
@@ -56,35 +62,44 @@ void setup() {
 
   lightPixel(0, 0, 0, 0, 0); // Light off to indicate setup is complete              
 
-  esp_sleep_enable_timer_wakeup(10000000); // Wake up every 10s to run sensor readings
+  // esp_sleep_enable_timer_wakeup(10000000); // Wake up every 10s to run sensor readings
 }
 
 void loop () {
 
-  Serial.println("Waking up!");
+  // Serial.println("Waking up!");
 
   // Check if WiFi and MQTT are connected
-  if (WiFi.status() != WL_CONNECTED) {
+  // unsigned long now = millis();
+
+  // if (now - lastWiFicheck < Batt_Check_Interval & WiFi.status() != WL_CONNECTED) {
+  if(WiFi.status() != WL_CONNECTED) {
     logMsg = "WiFi disconnected. Reconnecting...";
     Serial.println(logMsg);
-    
+
     connectToWiFi();
     mqttLog(logMsg);
+
+    // Update last check timestamp immediately
+    // lastWiFicheck = now;
   }
-  if (!mqttClient.connected()) {
+  // if (now - lastMQTTcheck < Batt_Check_Interval & !mqttClient.connected()) {
+  if(!mqttClient.connected()) {
     logMsg = "MQTT disconnected. Reconnecting...";
     Serial.println(logMsg);
-    
+
     connectToMQTT();
     mqttLog(logMsg);
+    // Update last check timestamp immediately
+    // lastMQTTcheck = now;
   }
-
-
-  readWeatherSensors();
-
-  delay(60000);
-
-  // Serial.println("Going to sleep");
   
-  // esp_light_sleep_start(); // Enter light sleep
+  mqttClient.loop();          // Listen for MQTT updates & keep MQTT alive
+
+  // Check peripherals
+  readWeatherSensors();        // Temp/humidity/pressure
+  checkBatteryAndSleepIfLow(); // Battery check - sleep if too low
+
+  updateCurrentPattern();      // animate LEDs
+
 }

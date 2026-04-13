@@ -9,9 +9,64 @@
 #include "config.h"
 #include "secrets.h"
 
-
 using namespace std;
 
+// Battery management functions ====
+float readBatVoltage() {
+  uint32_t Vbatt = 0;
+  for(int i = 0; i < 16; i++) {
+    Vbatt += analogReadMilliVolts(VoltageReader_Pin); // Read and accumulate ADC voltage
+    delay(2);
+  }
+  float Vbattf = 2 * Vbatt / 16 / 1000.0; 
+
+  return Vbattf;
+}
+
+void checkBatteryAndSleepIfLow() {
+  unsigned long Batt_now = millis();
+
+  // Skip battery check if it hasn't been very long since last check
+  if (Batt_now - lastBattCheck < Batt_Check_Interval) return;
+
+  // Update last check timestamp immediately
+  lastBattCheck = Batt_now;
+
+  float Vbat = readBatVoltage();
+  Serial.printf("Battery voltage: %.2f V\n", Vbat);
+  mqttClient.publish(MQTT_TOPIC_Battery, String(Vbat, 1).c_str());
+
+  // Case 1: No battery connected
+  if (Vbat < NO_BAT_THRESHOLD) {
+    Serial.println("⚠️ No battery detected — continuing normal operation.");
+    return;
+  }
+
+  // Case 2: Battery low
+  if (Vbat < LOW_BAT_THRESHOLD) {
+    Serial.println("Low battery! Charge me!");
+
+    unsigned long chimeStart = millis();
+    while (millis() - chimeStart < 2500) {
+      yield(); // keep watchdog fed during wait
+    }
+
+    // Compute sleep duration in microseconds
+    uint64_t sleep_us = (uint64_t)LOW_BAT_SLEEP_INTERVAL * 120ULL * 1000000ULL;
+
+    Serial.printf("Sleeping for %d minutes before rechecking battery.\n",
+                  LOW_BAT_SLEEP_INTERVAL);
+
+    // Configure wake timer
+    esp_sleep_enable_timer_wakeup(sleep_us);
+    esp_deep_sleep_start();
+  }
+
+  // Case 3: Battery OK — continue running
+  Serial.println("Battery OK — continuing normal operation.");
+}
+
+//  WiFi/MQTT functions ====
 void connectToWiFi() {
   logMsg = "Connecting to Wi-Fi";
   Serial.print(logMsg);
@@ -42,9 +97,11 @@ void connectToMQTT() {
   int attempts = 0;
   while (!mqttClient.connected() && attempts < 10) {
     if (mqttClient.connect("ESP32-S3-Zero WeatherStation", mqttUser, mqttPassword)) {
+      mqttClient.setCallback(onMQTTMessage);
       mqttClient.subscribe(MQTT_TOPIC_Temp);
       mqttClient.subscribe(MQTT_TOPIC_Pressure);
       mqttClient.subscribe(MQTT_TOPIC_Humidity);
+      mqttClient.subscribe(MQTT_TOPIC_Pattern);
       Serial.println("connected"); // Report MQTT connection status
       mqttLog("MQTT connected");
       break;
@@ -64,8 +121,30 @@ void mqttLog(const String& message) {
   mqttClient.publish("esp32/WeatherStation/Log", message.c_str());
 }
 
+void onMQTTMessage(char* topic, uint8_t* payload, unsigned int length) {
+  char msg[length + 1];
+  memcpy(msg, payload, length);
+  msg[length] = '\0';  // null terminate
+
+  int newPattern = atoi(msg);
+
+  if (newPattern >= 0 && newPattern <= 4) {
+    patternIndex = newPattern;
+    Serial.printf("Switched to pattern %d\n", patternIndex);
+  }
+}
+
+// Weather functions ====
+
 // The whole sequence to taking the temp/pressure/humidity readings
 void readWeatherSensors() {
+  unsigned long Sensor_now = millis();
+
+  // Skip sensor reads if it hasn't been very long since last check (same interval as battery check)
+  if (Sensor_now - lastSensorCheck < Batt_Check_Interval) return;
+
+  // Update last check timestamp immediately
+  lastSensorCheck = Sensor_now;
 
   sensors_event_t humidity, temp;
   aht.getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
@@ -92,18 +171,12 @@ void readWeatherSensors() {
   mqttClient.publish(MQTT_TOPIC_Pressure, String(bmp.readPressure() / 100.0F, 1).c_str());
   mqttClient.publish(MQTT_TOPIC_Humidity, String(humidity.relative_humidity, 1).c_str());
 
-  
-  // // cascading signal that we took a measurement
-  // for (int i = 0; i < numPixels; i++) {
-  //   lightPixel(i, 10, 0, 0, 0); // dim red light
-  //   delay(250);
-  //   lightPixel(i, 0, 0, 0, 0); // shut off
-  // }
-  lightPixel(0, 5, 0, 0, 0); // dim red light
+  lightPixel(0, 0, 5, 0, 0); // dim green light
   delay(250);
   lightPixel(0, 0, 0, 0, 0); // shut off
 }
 
+// Neopixel Functions ====
 void lightPixel(int position, int Red, int Green, int Blue, int White) {
 
   // Determine which chain and pixel to light up
