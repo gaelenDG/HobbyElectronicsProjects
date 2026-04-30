@@ -67,12 +67,6 @@ void setup() {
 
 void loop () {
 
-  // Serial.println("Waking up!");
-
-  // Check if WiFi and MQTT are connected
-  // unsigned long now = millis();
-
-  // if (now - lastWiFicheck < Batt_Check_Interval & WiFi.status() != WL_CONNECTED) {
   if(WiFi.status() != WL_CONNECTED) {
     logMsg = "WiFi disconnected. Reconnecting...";
     Serial.println(logMsg);
@@ -80,25 +74,22 @@ void loop () {
     connectToWiFi();
     mqttLog(logMsg);
 
-    // Update last check timestamp immediately
-    // lastWiFicheck = now;
+    // get the current time on re-connect to WiFi
+    // syncTime();
   }
-  // if (now - lastMQTTcheck < Batt_Check_Interval & !mqttClient.connected()) {
+
   if(!mqttClient.connected()) {
     logMsg = "MQTT disconnected. Reconnecting...";
     Serial.println(logMsg);
 
     connectToMQTT();
     mqttLog(logMsg);
-    // Update last check timestamp immediately
-    // lastMQTTcheck = now;
   }
   
   mqttClient.loop();          // Listen for MQTT updates & keep MQTT alive
 
   // Check peripherals
-  readWeatherSensors();        // Temp/humidity/pressure
-  checkBatteryAndSleepIfLow(); // Battery check - sleep if too low
+  readSensors();        // Temp/humidity/pressure
 
   updateCurrentPattern();      // animate LEDs
 

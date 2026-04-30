@@ -5,29 +5,37 @@
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_AHTX0.h>
 #include <Adafruit_BMP280.h>
+#include <time.h>
 
 // ======== Function prototypes ======== //
-
-// Core functions ====
-float readBatVoltage();
-void checkBatteryAndSleepIfLow();
 
 //  WiFi/MQTT functions ====
 void connectToWiFi();
 void connectToMQTT();
 void mqttLog(const String& message);
 void onMQTTMessage(char* topic, byte* payload, unsigned int length);
+// bool syncTime(uint32_t timeoutMs);
 
 // NeoPixel functions ====
 void lightPixel(int position, int Red, int Green, int Blue, int White);
 
-// Weather functions ====
-void readWeatherSensors();
+// Sensor reading functions ====
+void readSensors();
+float readBatVoltage();
+void checkBatteryAndSleepIfLow();
 
-// Light patterns Defined in patterns.cpp
+// Light patterns defined in patterns.cpp ====
 void updateCurrentPattern();
-void updateDefaultPattern();
-void updatePattern1();
+
+void DefaultPattern();
+void initPattern1();
 void updatePattern2();
 void updatePattern3();
+void initPattern4();
 void updatePattern4();
+
+// Helpers for patterns ====
+
+// Selects a random color from a predefined list.
+void pickRandomColor(int &r, int &g, int &b);
+
