@@ -126,6 +126,7 @@ void checkBatteryAndSleepIfLow() {
       int newPattern = atoi(msg);
       
       if (newPattern >= 0 && newPattern <= 4) {
+        DefaultPattern();
         patternIndex = newPattern;
         Serial.printf("Switched to pattern %d\n", patternIndex);
         mqttClient.publish("esp32/FairyGarden/lights/pattern_state", String(patternIndex).c_str()); // Publish new state to HA
@@ -149,77 +150,60 @@ void checkBatteryAndSleepIfLow() {
     }
   }
   
-  // bool syncTime(uint32_t timeoutMs = 8000) {
-  //   configTime(0, 0, "pool.ntp.org", "time.nist.gov");
-    
-  //   struct tm timeinfo;
-  //   uint32_t start = millis();
-    
-  //   while (millis() - start < timeoutMs) {
-  //     if (getLocalTime(&timeinfo)) {
-  //       time_t now;
-  //       time(&now);
-        
-  //       rtcEpoch = now;
-  //       rtcSyncMillis = millis();
-  //       hasValidTime = true;
-        
-  //       Serial.println("Time synced via NTP:");
-  //       Serial.println(ctime(&now));
-        
-  //       return true;
-  //     }
-  //     delay(200);
-  //   }
-  //   Serial.println("NTP sync failed");
-  //   return false;
-  // }
-  
-  // Weather functions ====
+  // Sensor functions ====
   
   // The whole sequence to taking the temp/pressure/humidity readings
   void readSensors() {
-    checkBatteryAndSleepIfLow(); // Battery check - sleep if too low
-    
-    unsigned long Sensor_now = millis();
     
     // Skip sensor reads if it hasn't been very long since last check (same interval as battery check)
-    if (Sensor_now - lastSensorCheck < SensorCheck_Interval) return;
+    unsigned long Sensor_now = millis();
     
+    
+    if (Sensor_now - lastSensorCheck < SensorCheck_Interval) return;
     // Update last check timestamp immediately
     lastSensorCheck = Sensor_now;
     
-    sensors_event_t humidity, temp;
-    aht.getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
+    checkBatteryAndSleepIfLow(); // Battery check - sleep if too low   
     
-    
-    // must call this to wake sensor up and get new measurement data
-    // it blocks until measurement is complete
-    if (bmp.takeForcedMeasurement()) {
+    if (aht.begin() & bmp.begin()) {
       
-      // Read data from BMP280
-      float pressure = bmp.readPressure() / 100.0F; // Convert to hPa
-      float altitude = bmp.readAltitude(1013.25); // Sea level pressure in hPa
+      sensors_event_t humidity, temp;
+      aht.getEvent(&humidity, &temp);// populate temp and humidity objects with fresh data
       
-    } else {
-      Serial.println("Forced measurement failed!");
-    }
+      // must call this to wake sensor up and get new measurement data
+      // it blocks until measurement is complete
+      if (bmp.takeForcedMeasurement()) {
+        
+        // Read data from BMP280
+        float pressure = bmp.readPressure() / 100.0F; // Convert to hPa
+        float altitude = bmp.readAltitude(1013.25); // Sea level pressure in hPa
+        
+      } else {
+        Serial.println("Forced measurement failed!");
+      }
+      
+      Serial.println( "Temp = " + String(temp.temperature, 1) + " C" + 
+      " | Pressure = " + String(bmp.readPressure() / 100.0F, 1) + " Pa" +
+      " | Humidity = " + String(humidity.relative_humidity, 1) + " %"
+    );
     
-    Serial.println( "Temp = " + String(temp.temperature, 1) + " C" + 
-    " | Pressure = " + String(bmp.readPressure() / 100.0F, 1) + " Pa" +
-    " | Humidity = " + String(humidity.relative_humidity, 1) + " %"
-  );
+    // int LDR_reading = analogReadMilliVolts(LDR_pin); // Read LDR
+    // int Thermistor_reading = analogReadMilliVolts(thermistor_pin); // Read thermistor value
+    
+    mqttClient.publish(MQTT_TOPIC_Temp, String(temp.temperature, 1).c_str());
+    mqttClient.publish(MQTT_TOPIC_Pressure, String(bmp.readPressure() / 100.0F, 1).c_str());
+    mqttClient.publish(MQTT_TOPIC_Humidity, String(humidity.relative_humidity, 1).c_str());
+  }
   
-  mqttClient.publish(MQTT_TOPIC_Temp, String(temp.temperature, 1).c_str());
-  mqttClient.publish(MQTT_TOPIC_Pressure, String(bmp.readPressure() / 100.0F, 1).c_str());
-  mqttClient.publish(MQTT_TOPIC_Humidity, String(humidity.relative_humidity, 1).c_str());
+  
+  // mqttClient.publish(MQTT_TOPIC_LDR, String(LDR_reading).c_str());
   
   // lightPixel(0, 0, 5, 0, 0); // dim green light
   // delay(250);
   // lightPixel(0, 0, 0, 0, 0); // shut off
 }
 
-// Neopixel Functions ====
+// Neopixel & LED strand Functions ====
 void lightPixel(int position, int Red, int Green, int Blue, int White) {
   
   // Determine which chain and pixel to light up
@@ -235,4 +219,14 @@ void lightPixel(int position, int Red, int Green, int Blue, int White) {
   
   chain->show();
   
+}
+
+/*
+* Sets the brightness of the LED strand using PWM.
+* @param PWM A value between 0 (off) and 255 (full brightness)
+*/
+void lightStrand(int PWM) {
+  // ledcWrite(LEDC_CHANNEL, PWM);  // Apply PWM value to LED strand
+  // analogWrite(PWM_LED_PIN, PWM);
+  ledcWrite(PWM_LED_PIN, PWM);
 }

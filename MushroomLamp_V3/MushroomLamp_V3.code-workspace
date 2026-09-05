@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "ESP32_WeatherStation",
+			"path": "../ESP32_WeatherStation"
+		},
+		{
+			"name": "MushroomLamp_DemonstrationBoard",
+			"path": "../MushroomLamp_DemonstrationBoard"
+		},
+		{
+			"name": "MushroomLamp_V2",
+			"path": "../MushroomLamp_V2"
+		},
+		{
+			"name": "Neopixel Book",
+			"path": "../Neopixel Book"
+		}
+	],
+  "settings": {}
+}

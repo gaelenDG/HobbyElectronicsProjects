@@ -21,13 +21,21 @@ extern int previousPattern; // tracks the previously defined pattern and forces 
 extern uint8_t I2C_SDA_PIN;  // GPIO pin for I2C SDA
 extern uint8_t I2C_SCL_PIN;  // GPIO pin for I2C SCL
 extern uint8_t VoltageReader_Pin; // GPIO pin for battery voltage reader
-extern uint8_t LDR; 
+extern uint8_t LDR_pin; 
+extern uint8_t thermistor_pin;
+
+// ========= LED Strand config ======
+extern const int LEDC_CHANNEL;     // Use PWM channel 0
+extern const int LEDC_TIMER_BIT;   // 8-bit resolution (0-255)
+extern const int LEDC_BASE_FREQ; // 5 kHz frequency
+extern const int PWM_LED_PIN;      // GPIO pin for the LED
 
 // ======== MQTT Topics ========
 
 extern const char* MQTT_TOPIC_Temp;
 extern const char* MQTT_TOPIC_Pressure;
 extern const char* MQTT_TOPIC_Humidity;
+extern const char* MQTT_TOPIC_LDR;
 extern const char* MQTT_TOPIC_Battery;
 extern const char* MQTT_TOPIC_Pattern;
 extern const char* MQTT_TOPIC_BRIGHTNESS;
@@ -41,7 +49,6 @@ extern PubSubClient mqttClient;
 
 // ======== Sensor Declarations ========
 extern Adafruit_AHTX0 aht; // AHT20 temperature sensor
- 
 extern Adafruit_BMP280 bmp; // BMP280 pressure sensor
 
 // Battery checking timing and thresholds
@@ -82,6 +89,15 @@ extern int cycleDuration_arr[NUM_PIXELS];
 extern int colors_arr[NUM_PIXELS][3];
 extern int newColors_arr[NUM_PIXELS][3];
 extern bool wasDecreasing_arr[NUM_PIXELS];
-extern bool waitingForMin_arr[NUM_PIXELS];
+extern float brightness_strand;
+extern unsigned long startTime_strand;
+extern int cycleDuration_strand;
+extern bool wasDecreasing_strand;
+
+extern float phase_arr[NUM_PIXELS];
+extern float phase_strand;
+
+extern bool didSwap_arr[NUM_PIXELS];
+extern bool didSwap_strand;
 
 #endif // CONFIG_H
