@@ -58,7 +58,7 @@ uint64_t LONG_PRESS_TIME = 800;
 uint64_t REPEAT_INTERVAL = 500;
 uint64_t DEBOUNCE_TIME = 100;
 
-int volume = 15;
+int volume = 20;
 int MAX_VOLUME = 30;
 int MIN_VOLUME = 0;
 
@@ -83,8 +83,22 @@ bool tagPresent = false;
 uint8_t currentUID[7] = {0};
 uint8_t currentUIDLength = 0;
 
-const unsigned long TAG_TIMEOUT = 1200UL; // ms to wait for lost tag
-const unsigned long POST_READ_COOLDOWN = 600UL; // ms to wait after a successful read
+const unsigned long TAG_TIMEOUT = 2000UL; // ms to wait for lost tag
+const unsigned long POST_READ_COOLDOWN = 1000UL; // ms to wait after a successful read
+
+
+// ========= WiFi Access Point setup =========
+
+// Replace with your network credentials
+const char* ssid     = "MusicBox-AP";
+const char* password = "123456";
+
+// Set web server port number to 80
+WiFiServer server(80);
+
+// Variable to store the HTTP request
+String header;
+
 
 
 // =========== WiFi setup & MQTT Topics =============

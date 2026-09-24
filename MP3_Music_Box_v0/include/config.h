@@ -66,4 +66,6 @@ extern unsigned long lastPeripheralCheck;
 extern const unsigned long CHECK_INTERVAL;
 
 
+
+
 #endif // CONFIG_H

@@ -25,12 +25,20 @@ void setup() {
   // Show booting up with dim yellow
   setStatusLight(10, 5, 0);
   
-  // Connect to WiFi & MQTT
-  logMsg = "Connecting to WiFi...";
-  connectToWiFi();
+  // // Connect to WiFi & MQTT
+  // logMsg = "Connecting to WiFi...";
+  // connectToWiFi();
 
-  logMsg = "Connecting to MQTT";
-  connectToMQTT();
+  // logMsg = "Connecting to MQTT";
+  // connectToMQTT();
+
+  // Connect to Wi-Fi network with SSID and password
+  logMsg = "Setting Access Point…";
+  
+  WiFi.softAP(ssid, password);
+
+
+  server.begin();
 
   // Initialize buttons
   pinMode(Button1_pin, INPUT);
@@ -49,7 +57,6 @@ void setup() {
     if (MP3Serial.available()) Serial.printf("Got: 0x%02X\n", MP3Serial.read());
   }
 
-
   if (!player.begin(MP3Serial)) {
     Serial.println("❌ Connecting to DFPlayer Mini failed!");
     Serial.println("Check wiring, SD card, and voltage levels.");
@@ -63,8 +70,6 @@ void setup() {
 
   Serial.println("DFRobot player connected!");
 
-  
-  
 
   // ----------- Initialize NFC reader ------------------
   nfc.begin();
@@ -87,7 +92,7 @@ void setup() {
   if (DFRobot_connected && NFCconnected) {
     setStatusLight(0, 5, 0);  // green = all good
 
-    // Play removed chime then stop playback
+    // Play startup chime then stop playback
     player.volume(10);
     player.playFolder(01,001);
 

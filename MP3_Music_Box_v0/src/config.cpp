@@ -84,3 +84,14 @@ uint8_t currentUIDLength = 0;
 const unsigned long TAG_TIMEOUT = 1500UL; // ms to wait for lost tag
 const unsigned long POST_READ_COOLDOWN = 750UL; // ms to wait after a successful read
 
+// Set up WiFi access point vars
+
+// Replace with your network credentials
+const char* ssid     = "ESP32-Access-Point";
+const char* password = "123456789";
+
+// Set web server port number to 80
+WiFiServer server(80);
+
+// Variable to store the HTTP request
+String header;
